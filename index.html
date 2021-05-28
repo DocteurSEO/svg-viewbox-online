@@ -96,15 +96,24 @@ body {
 
 
 <body>
-   
+    <div class="elem">
+        <label for="rangeSW">Svg Width  <span>0</span></label>
+        <input type="range" min="0" max="2000" value="50" class="slider" id="rangeSW" oninput="changeSVG(`SW`, this.value)">
+    </div>
+    <div class="elem">
+        <label for="rangeSH">Svg Height <span>0</span></label>
+        <input type="range" min="0" max="2000" value="50" class="slider" id="rangeSH" oninput="changeSVG(`SH`, this.value)">
+    </div>
     <div id="show"></div>
     <input type="file" id="uploadBtn" hidden="hidden">
     <div class="droparea" id="drop-area">
         <h1>Drop your SVG!</h1>
     </div>
-
+   
     <div class="slidecontainer" id="sliders">
+        
         <div class="slider-grid">
+            
             <div class="elem">
                 <label for="rangeX">X <span>0</span></label>
                 <input type="range" min="-1000" max="1000" value="50" class="slider" id="rangeX" oninput="changeSVG(`X`, this.value)">
@@ -147,8 +156,12 @@ rangeX=document.getElementById("rangeX"),
 rangeY=document.getElementById("rangeY"),
 rangeW=document.getElementById("rangeW"),
 rangeH=document.getElementById("rangeH"),
+rangeSW=document.getElementById("rangeSW"),
+rangeSH=document.getElementById("rangeSH"),
 copyText=document.getElementById("copyText");
-var vbValues=[];
+let vbValues=[];
+let svgWidth = 0; 
+let svgHeight = 0;
 
 function preventDefaults(e){e.preventDefault(),e.stopPropagation()}
 function handleDrop(e){if(e.dataTransfer) { handleFiles(e.dataTransfer.files)}
@@ -167,7 +180,22 @@ function previewFile(e) {
         (vbValues = e.getAttribute("viewBox").split(" ")),
         (rangeX.value = vbValues[0]),
         (rangeX.previousElementSibling.firstElementChild.innerHTML =
-          vbValues[0]),
+          vbValues[0] 
+       
+          ),
+          (svgWidth = e.getAttribute("width") ),
+        (rangeSW.value = svgWidth ),
+        (rangeSW.previousElementSibling.firstElementChild.innerHTML =
+        svgWidth, 
+        console.log(svgWidth)
+       
+          ),
+          (svgHeight = e.getAttribute("height") ),
+        (rangeSH.value = svgHeight),
+        (rangeSH.previousElementSibling.firstElementChild.innerHTML =
+        svgHeight
+       
+          ),
         (rangeY.value = vbValues[1]),
         (rangeY.previousElementSibling.firstElementChild.innerHTML =
           vbValues[1]),
@@ -183,6 +211,8 @@ function previewFile(e) {
 }
 function changeSVG(e, t) {
   let n = document.querySelector("svg");
+  (svgWidth = n.getAttribute("width")),
+  (svgHeight = n.getAttribute("height")),
   (vbValues = n.getAttribute("viewBox").split(" ")),
     "X" == e
       ? updateSibs(e, 0, t)
@@ -190,16 +220,56 @@ function changeSVG(e, t) {
       ? updateSibs(e, 1, t)
       : "W" == e
       ? updateSibs(e, 2, t)
+      : "SW" == e
+      ? updateSibs(e, 2, t)
+      : "SH" == e
+      ? updateSibs(e, 2, t)
       : "H" == e && updateSibs(e, 3, t),
+    
     n.setAttribute("viewBox", vbValues.join(" "));
+    // n.setAttribute("width", vbValues.join(" "));
+    // n.setAttribute("height", vbValues.join(" "));
+
+    
+
 }
 function updateSibs(e, t, n) {
+
+
+    if(e ==="SH") {
+        console.log(svgHeight) ;
+    document.getElementById(
+`range${e}`
+).previousElementSibling.firstElementChild.innerHTML = n;
+ svgHeight.value = n 
+
+ let svg = document.querySelector("svg");
+ svg.setAttribute("height", n);
+
+ 
+}
+
+
+if(e ==="SW") {
+        console.log(svgHeight) ;
+    document.getElementById(
+`range${e}`
+).previousElementSibling.firstElementChild.innerHTML = n;
+ svgHeight.value = n 
+
+ let svg = document.querySelector("svg");
+ svg.setAttribute("width", n);
+
+}
+
+
+else{
   (document.getElementById(
     `range${e}`
   ).previousElementSibling.firstElementChild.innerHTML = n),
     (vbValues[t] = n);
   let r = vbValues.join(" ");
-  copyText.value = `viewBox="${r}"`;
+  copyText.value = `viewBox="${r}"`;}
 }
 ["dragenter", "dragover", "dragleave", "drop"  ].forEach((e) => {
   dropArea.addEventListener(e, preventDefaults, !1),
