@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG viewbox Editor</title>
+</head>
+
+
+<style>
+
+body {
+    margin: 0;
+    background: #eeeeee;
+    height: 100vh;
+    font-family: "Montserrat";
+  }
+  
+  *, *:before, *:after {
+    box-sizing: border-box;
+  }
+  
+  .slidecontainer {
+    position: fixed;
+    background: #242424;
+    padding: 2em;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    color: white;
+    opacity: 0;
+  }
+  .slidecontainer label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 0.5em;
+  }
+  .slidecontainer label span {
+    float: right;
+    font-weight: normal;
+  }
+  .slidecontainer input {
+    margin-bottom: 1em;
+    width: 100%;
+  }
+  
+  .droparea {
+    background: white;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100vh;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+  }
+  .droparea h1 {
+    text-align: center;
+    margin-top: -4em;
+    border: 1px dashed black;
+    padding: 2em;
+  }
+  
+  .copy {
+    background: #333333;
+    border: none;
+    padding: 0.8em;
+    border-radius: 5px;
+    color: #d6d6d6;
+  }
+  
+  .secondary {
+    color: gray;
+  }
+  
+  @media (min-width: 760px) {
+    .slider-grid {
+      display: grid;
+      grid-template-columns: repeat(4, auto);
+    }
+    .slider-grid .elem {
+      padding: 1em;
+    }
+    .slider-grid span {
+      color: #7c7c7c;
+    }
+  
+    .other {
+      display: grid;
+      grid-template-columns: repeat(2, auto);
+    }
+    .other .elem {
+      padding: 1em;
+    }
+  }</style>
+
+
+<body>
+   
+    <div id="show"></div>
+    <input type="file" id="uploadBtn" hidden="hidden">
+    <div class="droparea" id="drop-area">
+        <h1>Drop your SVG!</h1>
+    </div>
+
+    <div class="slidecontainer" id="sliders">
+        <div class="slider-grid">
+            <div class="elem">
+                <label for="rangeX">X <span>0</span></label>
+                <input type="range" min="-1000" max="1000" value="50" class="slider" id="rangeX" oninput="changeSVG(`X`, this.value)">
+            </div>
+
+            <div class="elem">
+                <label for="rangeY">Y <span>0</span></label>
+                <input type="range" min="-1000" max="1000" value="50" class="slider" id="rangeY" oninput="changeSVG(`Y`, this.value)">
+            </div>
+            <div class="elem">
+                <label for="rangeW">Width <span>0</span></label>
+                <input type="range" min="0" max="2000" value="50" class="slider" id="rangeW" oninput="changeSVG(`W`, this.value)">
+            </div>
+            <div class="elem">
+                <label for="rangeH">Height <span>0</span></label>
+                <input type="range" min="0" max="2000" value="50" class="slider" id="rangeH" oninput="changeSVG(`H`, this.value)">
+            </div>
+        </div>
+
+        <div class="other">
+            <div class="elem">
+                <label class="secondary">Background Color</label>
+                <div class="color-picker"></div>
+            </div>
+
+            <div class="elem">
+                <label for="copyText" class="secondary">Copy Output</label>
+                <input type="text" value="" class="copy" id="copyText" onClick="this.select();">
+            </div>
+        </div>
+
+        
+    </div>
+ 
+</body>
+ 
+<script type="text/javascript">
+let dropArea=document.getElementById("drop-area"),
+rangeX=document.getElementById("rangeX"),
+rangeY=document.getElementById("rangeY"),
+rangeW=document.getElementById("rangeW"),
+rangeH=document.getElementById("rangeH"),
+copyText=document.getElementById("copyText");
+var vbValues=[];
+
+function preventDefaults(e){e.preventDefault(),e.stopPropagation()}
+function handleDrop(e){if(e.dataTransfer) { handleFiles(e.dataTransfer.files)}
+
+handleFiles(e.target.files)
+}
+function handleFiles(e){(e=[...e]).forEach(previewFile)}
+function previewFile(e) {
+  let t = new FileReader();
+  dropArea.remove(),
+    console.log(t.readAsBinaryString(e)),
+    (t.onloadend = function () {
+      document.getElementById("show").insertAdjacentHTML("beforeend", t.result);
+      let e = document.getElementById("show").firstChild;
+     
+        (vbValues = e.getAttribute("viewBox").split(" ")),
+        (rangeX.value = vbValues[0]),
+        (rangeX.previousElementSibling.firstElementChild.innerHTML =
+          vbValues[0]),
+        (rangeY.value = vbValues[1]),
+        (rangeY.previousElementSibling.firstElementChild.innerHTML =
+          vbValues[1]),
+        (rangeW.value = vbValues[2]),
+        (rangeW.previousElementSibling.firstElementChild.innerHTML =
+          vbValues[2]),
+        (rangeH.value = vbValues[3]),
+        (rangeH.previousElementSibling.firstElementChild.innerHTML =
+          vbValues[3]),
+        (copyText.value = `viewBox="${vbValues[0]} ${vbValues[1]} ${vbValues[2]} ${vbValues[3]}"`);
+    }),
+    (document.getElementById("sliders").style.opacity = 1);
+}
+function changeSVG(e, t) {
+  let n = document.querySelector("svg");
+  (vbValues = n.getAttribute("viewBox").split(" ")),
+    "X" == e
+      ? updateSibs(e, 0, t)
+      : "Y" == e
+      ? updateSibs(e, 1, t)
+      : "W" == e
+      ? updateSibs(e, 2, t)
+      : "H" == e && updateSibs(e, 3, t),
+    n.setAttribute("viewBox", vbValues.join(" "));
+}
+function updateSibs(e, t, n) {
+  (document.getElementById(
+    `range${e}`
+  ).previousElementSibling.firstElementChild.innerHTML = n),
+    (vbValues[t] = n);
+  let r = vbValues.join(" ");
+  copyText.value = `viewBox="${r}"`;
+}
+["dragenter", "dragover", "dragleave", "drop"  ].forEach((e) => {
+  dropArea.addEventListener(e, preventDefaults, !1),
+    document.body.addEventListener(e, preventDefaults, !1);
+}),
+  dropArea.addEventListener("drop", handleDrop, !1);
+  dropArea.addEventListener("click", function () {uploadBtn.click()}, !1);
+   
+  uploadBtn.addEventListener("change", handleDrop, !1);
+ 
+
+    </script>
+</html>
